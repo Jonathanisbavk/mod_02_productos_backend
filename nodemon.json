@@ -1,0 +1,8 @@
+{
+  "watch": ["src"],
+  "ext": "js,mjs,cjs,json",
+  "ignore": ["uploads/*", "metadata/*", "node_modules/*"],
+  "env": {
+    "NODE_ENV": "development"
+  }
+}

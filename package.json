@@ -1,0 +1,35 @@
+{
+  "name": "mod_02_productos",
+  "version": "1.0.0",
+  "description": "Modulo de Productos (Conciertos/Eventos) - Sistema de Tickets blockchain",
+  "main": "src/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "compile": "hardhat compile",
+    "deploy": "hardhat run scripts/deploy.cjs --network ganache"
+  },
+  "keywords": [
+    "blockchain",
+    "tickets",
+    "eventos",
+    "conciertos"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "ethers": "^6.13.4",
+    "express": "^5.1.0",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.22.4"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.17",
+    "nodemon": "^3.1.10"
+  },
+  "type": "module"
+}

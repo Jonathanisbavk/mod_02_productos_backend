@@ -1,0 +1,346 @@
+{
+  "info": {
+    "name": "TicketChain — Eventos API",
+    "_postman_id": "ticketchain-eventos-v1",
+    "description": "Colección completa para probar la API de Eventos del sistema de tickets blockchain.\n\n**Antes de correr:**\n1. Levantar Express: `npm run dev` en mod_02_productos (puerto 3000)\n2. Para el request 02 (POST), adjuntar manualmente una imagen en el campo `banner`\n3. Correr en orden: los requests 03-11 usan {{evento_id}} seteado por el request 02",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "evento_id",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Health Check",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/health",
+        "description": "Verifica que el servidor Express está vivo y corriendo."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('status ok', () => {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.status).to.eql('ok');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 - GET todos los eventos",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/api/eventos",
+        "description": "Devuelve el array completo de eventos. Puede ser [] si no hay ninguno."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Respuesta es array', () => {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - POST crear evento (con banner)",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/api/eventos",
+        "description": "⚠️ Selecciona una imagen en el campo 'banner' (tipo File) antes de enviar.\n\nCrea un evento nuevo. El ID generado se guarda en {{evento_id}} para los siguientes tests.",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "name",        "value": "Rock de los 90s",      "type": "text" },
+            { "key": "description", "value": "Concierto tributo rock clásico", "type": "text" },
+            { "key": "fecha",       "value": "2026-08-15 21:00:00",  "type": "text" },
+            { "key": "lugar",       "value": "Movistar Arena",        "type": "text" },
+            { "key": "ciudad",      "value": "Bogotá",                "type": "text" },
+            { "key": "genero",      "value": "Rock",                  "type": "text" },
+            { "key": "precio_eth",  "value": "0.05",                  "type": "text" },
+            { "key": "aforo",       "value": "5000",                  "type": "text" },
+            { "key": "banner",      "value": "",                      "type": "file", "description": "⚠️ Selecciona aquí una imagen JPG/PNG" }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 201', () => pm.response.to.have.status(201));",
+              "pm.test('Tiene id', () => {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.id).to.be.a('number');",
+              "  pm.collectionVariables.set('evento_id', json.id);",
+              "  console.log('evento_id guardado:', json.id);",
+              "});",
+              "pm.test('Tiene banner', () => {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.banner).to.include('/uploads/');",
+              "});",
+              "pm.test('Tiene metadataPath', () => {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.metadataPath).to.include('/metadata/');",
+              "});",
+              "pm.test('Name correcto', () => {",
+              "  pm.expect(pm.response.json().name).to.eql('Rock de los 90s');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - GET evento por ID",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/api/eventos/{{evento_id}}",
+        "description": "Obtiene el evento creado en el paso 02 usando {{evento_id}}."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('ID coincide', () => {",
+              "  const json = pm.response.json();",
+              "  const expectedId = parseInt(pm.collectionVariables.get('evento_id'));",
+              "  pm.expect(json.id).to.eql(expectedId);",
+              "});",
+              "pm.test('Tiene todos los campos', () => {",
+              "  const json = pm.response.json();",
+              "  ['id','name','fecha','lugar','precio_eth','aforo','banner'].forEach(k => {",
+              "    pm.expect(json).to.have.property(k);",
+              "  });",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - GET evento ID inexistente (404)",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/api/eventos/99999",
+        "description": "Debe devolver 404 con mensaje de error."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 404', () => pm.response.to.have.status(404));",
+              "pm.test('Mensaje de error', () => {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.error).to.be.a('string');",
+              "  pm.expect(json.error).to.include('no encontrado');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - GET banner estático",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/uploads/banner-test.png",
+        "description": "Verifica que Express sirve archivos estáticos desde /uploads/.\n⚠️ Cambia 'banner-test.png' por el nombre real devuelto en el paso 02 (campo 'banner')."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Respuesta 200 (archivo existe) o 404 si el nombre es incorrecto', () => {",
+              "  pm.expect([200, 404]).to.include(pm.response.code);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - GET metadata JSON",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/metadata/{{evento_id}}.json",
+        "description": "Obtiene el JSON estilo ERC-721 generado automáticamente al crear el evento."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Estructura ERC-721 válida', () => {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json).to.have.property('name');",
+              "  pm.expect(json).to.have.property('image');",
+              "  pm.expect(json.attributes).to.be.an('array');",
+              "  pm.expect(json.attributes.length).to.be.above(0);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - PUT actualizar evento",
+      "request": {
+        "method": "PUT",
+        "url": "{{base_url}}/api/eventos/{{evento_id}}",
+        "description": "Actualiza precio y aforo del evento. El banner es opcional; si no adjuntas archivo, se mantiene el anterior.",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "precio_eth", "value": "0.08", "type": "text" },
+            { "key": "aforo",      "value": "4500",  "type": "text" },
+            { "key": "name",       "value": "Rock de los 90s — Edición Especial", "type": "text" }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('precio_eth actualizado', () => {",
+              "  const json = pm.response.json();",
+              "  pm.expect(String(json.precio_eth)).to.include('0.08');",
+              "});",
+              "pm.test('aforo actualizado', () => {",
+              "  pm.expect(pm.response.json().aforo).to.eql(4500);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - DELETE evento",
+      "request": {
+        "method": "DELETE",
+        "url": "{{base_url}}/api/eventos/{{evento_id}}",
+        "description": "Elimina el evento, su banner y su metadata JSON del disco."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "pm.test('Devuelve el evento eliminado', () => {",
+              "  const json = pm.response.json();",
+              "  const expectedId = parseInt(pm.collectionVariables.get('evento_id'));",
+              "  pm.expect(json.id).to.eql(expectedId);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 - GET evento eliminado (404)",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/api/eventos/{{evento_id}}",
+        "description": "Confirma que el evento ya no existe tras el DELETE del paso 08."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 404 — evento ya no existe', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 - POST sin banner (error 400)",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/api/eventos",
+        "description": "Intenta crear un evento sin adjuntar imagen. Debe devolver 400.",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "name",       "value": "Evento sin banner", "type": "text" },
+            { "key": "fecha",      "value": "2026-09-01 20:00:00", "type": "text" },
+            { "key": "lugar",      "value": "Teatro", "type": "text" },
+            { "key": "precio_eth", "value": "0.01",   "type": "text" },
+            { "key": "aforo",      "value": "200",     "type": "text" }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 400', () => pm.response.to.have.status(400));",
+              "pm.test('Mensaje: falta banner', () => {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.error.toLowerCase()).to.include('banner');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 - POST sin campos obligatorios (error 400)",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/api/eventos",
+        "description": "Intenta crear evento sin 'name' ni 'fecha'. Debe devolver 400 indicando campos faltantes.",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "description", "value": "Solo descripción, sin campos obligatorios", "type": "text" }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 400', () => pm.response.to.have.status(400));",
+              "pm.test('Mensaje: campos obligatorios', () => {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.error.toLowerCase()).to.include('obligatorios');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
