@@ -165,6 +165,28 @@ const EventoController = {
         borrarArchivo(removed.banner);
         borrarArchivo(removed.metadata_path);
         res.json(toResponse(removed));
+    },
+
+    // Flujo MetaMask (como en el lab de facturas): el frontend firma la transaccion en el
+    // navegador con la wallet del usuario y nos envia el txHash (y el onchainId opcional)
+    // para guardarlo como prueba on-chain del evento.
+    updateTxHash: async (req, res) => {
+        const { id } = req.params;
+        const { txHash, onchainId } = req.body;
+
+        if (!txHash) {
+            return res.status(400).json({ error: 'Falta el campo txHash' });
+        }
+
+        const actual = await EventoService.findById(Number(id));
+        if (!actual) return res.status(404).json({ error: 'Evento no encontrado' });
+
+        const updated = await EventoService.updateTxHash(
+            Number(id),
+            txHash,
+            onchainId != null ? Number(onchainId) : null
+        );
+        res.json(toResponse(updated));
     }
 };
 

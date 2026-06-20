@@ -29,6 +29,7 @@ router.get('/', EventoController.getAll);
 router.get('/:id', EventoController.getById);
 router.post('/', upload.single('banner'), EventoController.create);
 router.put('/:id', upload.single('banner'), EventoController.update);
+router.put('/:id/tx-hash', EventoController.updateTxHash); // flujo MetaMask: guardar txHash
 router.delete('/:id', EventoController.remove);
 
 export default router;

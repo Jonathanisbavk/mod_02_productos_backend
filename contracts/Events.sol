@@ -9,6 +9,7 @@ pragma solidity ^0.8.20;
 ///         sin necesidad de descifrar hashes.
 /// @dev    El resto de la informacion (nombre, descripcion, banner, genero, ciudad,
 ///         metadata) permanece en la base de datos del backend, fuera de la cadena.
+/// Controlar las clausulas del evento.
 contract Events {
 
     /// @notice Datos del evento que se almacenan on-chain (+ id tecnico).

@@ -1,7 +1,7 @@
-CREATE DATABASE IF NOT EXISTS tickets_db
+CREATE DATABASE IF NOT EXISTS data_productos
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-USE tickets_db;
+USE data_productos;
 
 CREATE TABLE IF NOT EXISTS eventos (
   id            INT AUTO_INCREMENT PRIMARY KEY,

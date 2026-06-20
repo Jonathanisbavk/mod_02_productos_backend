@@ -36,6 +36,17 @@ const EventoService = {
         );
     },
 
+    // Igual que updateOnchain pero pensado para el flujo MetaMask: el frontend firma la
+    // transaccion en el navegador y nos manda el txHash (y el onchainId si lo tiene).
+    // Devuelve el evento ya actualizado para responder al cliente.
+    updateTxHash: async (id, tx_hash, onchain_id = null) => {
+        await pool.query(
+            'UPDATE eventos SET tx_hash = ?, onchain_id = ? WHERE id = ?',
+            [tx_hash, onchain_id, id]
+        );
+        return EventoService.findById(id);
+    },
+
     update: async (id, data) => {
         await pool.query(
             `UPDATE eventos SET
