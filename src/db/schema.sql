@@ -17,10 +17,14 @@ CREATE TABLE IF NOT EXISTS eventos (
   metadata_path VARCHAR(255)   NULL,
   tx_hash       VARCHAR(66)    NULL,   -- hash de la transaccion on-chain (prueba blockchain)
   onchain_id    INT            NULL,   -- id del evento dentro del contrato Events
+  nft_token_id  INT            NULL,   -- tokenId del boleto NFT acunado (contrato EventoNFT)
+  nft_owner     VARCHAR(42)    NULL,   -- wallet dueña actual del NFT (cambia al transferir)
   created_at    DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Migracion para bases de datos ya existentes (ejecutar una sola vez):
 -- ALTER TABLE eventos
---   ADD COLUMN tx_hash    VARCHAR(66) NULL,
---   ADD COLUMN onchain_id INT         NULL;
+--   ADD COLUMN tx_hash      VARCHAR(66) NULL,
+--   ADD COLUMN onchain_id   INT         NULL,
+--   ADD COLUMN nft_token_id INT         NULL,
+--   ADD COLUMN nft_owner    VARCHAR(42) NULL;

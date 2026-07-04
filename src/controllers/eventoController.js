@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import EventoService from '../service/eventoService.js';
 import { registrarEventoOnChain } from '../blockchain/eventsContract.js';
+import { getNftConfig as readNftConfig, verifyNFTComplete } from '../blockchain/eventoNftContract.js';
 
 const METADATA_DIR = 'metadata';
 const UPLOADS_DIR = 'uploads';
@@ -50,8 +51,10 @@ function toResponse(row) {
         aforo:        row.aforo,
         banner:       row.banner,
         metadataPath: row.metadata_path,
-        txHash:       row.tx_hash,     // prueba on-chain: hash de la transaccion
-        onchainId:    row.onchain_id,  // id del evento dentro del contrato Events
+        txHash:       row.tx_hash,       // prueba on-chain: hash de la transaccion
+        onchainId:    row.onchain_id,    // id del evento dentro del contrato Events
+        nftTokenId:   row.nft_token_id,  // tokenId del boleto NFT acunado (contrato EventoNFT)
+        nftOwner:     row.nft_owner,     // wallet dueña actual del NFT (cambia al transferir)
         createdAt:    row.created_at
     };
 }
@@ -187,6 +190,75 @@ const EventoController = {
             onchainId != null ? Number(onchainId) : null
         );
         res.json(toResponse(updated));
+    },
+
+    // --- Boleto NFT (contrato EventoNFT / ERC-721) ---
+    // Equivalente a los endpoints NFT del Lab 12 de facturas.
+
+    // Config del contrato NFT (address + abi) para que el frontend acune firmando
+    // con MetaMask. GET /api/eventos/nft/config
+    getNftConfig: (req, res) => {
+        const config = readNftConfig();
+        if (!config) {
+            return res.status(503).json({
+                error: 'Config NFT no disponible. Ejecuta "npm run deploy" para desplegar EventoNFT.'
+            });
+        }
+        res.json(config);
+    },
+
+    // Guarda en la BD el tokenId del boleto (y su dueño inicial) tras acunarlo con MetaMask.
+    // PUT /api/eventos/:id/nft  body: { tokenId, owner }
+    updateNftToken: async (req, res) => {
+        const { id } = req.params;
+        const { tokenId, owner } = req.body;
+
+        if (tokenId == null) {
+            return res.status(400).json({ error: 'Falta el campo tokenId' });
+        }
+        const actual = await EventoService.findById(Number(id));
+        if (!actual) return res.status(404).json({ error: 'Evento no encontrado' });
+
+        const updated = await EventoService.updateNftToken(
+            Number(id),
+            Number(tokenId),
+            owner || null
+        );
+        res.json(toResponse(updated));
+    },
+
+    // Registra en la BD el nuevo dueño del NFT tras una transferencia entre wallets.
+    // La transferencia real (safeTransferFrom) la firma el dueño con MetaMask en el
+    // navegador; aqui solo persistimos quien es el nuevo propietario.
+    // PUT /api/eventos/:id/nft/transfer  body: { owner }
+    transferNft: async (req, res) => {
+        const { id } = req.params;
+        const { owner } = req.body;
+
+        if (!owner) {
+            return res.status(400).json({ error: 'Falta el campo owner (nueva wallet)' });
+        }
+        const actual = await EventoService.findById(Number(id));
+        if (!actual) return res.status(404).json({ error: 'Evento no encontrado' });
+        if (!actual.nft_token_id) {
+            return res.status(400).json({ error: 'Este evento aun no tiene un NFT acuñado' });
+        }
+
+        const updated = await EventoService.updateNftOwner(Number(id), owner);
+        res.json(toResponse(updated));
+    },
+
+    // Verificacion completa del NFT (tokenId + metadata + propiedad), de solo lectura.
+    // GET /api/eventos/nft/verify-complete/:eventoId/:address
+    verifyNftComplete: async (req, res) => {
+        const { eventoId, address } = req.params;
+        try {
+            const result = await verifyNFTComplete(eventoId, address);
+            res.json(result);
+        } catch (error) {
+            console.error('Error al verificar el NFT:', error);
+            res.status(500).json({ error: error.message });
+        }
     }
 };
 

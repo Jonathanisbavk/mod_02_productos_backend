@@ -17,8 +17,9 @@ artifacts/
 cache/
 typechain-types/
 
-# Info del contrato generada al desplegar (especifica del entorno)
+# Info de los contratos generada al desplegar (especifica del entorno)
 src/blockchain/contract-info.json
+src/blockchain/nft-info.json
 
 # Archivos subidos y metadata generada en tiempo de ejecucion
 uploads/*
@@ -29,7 +30,6 @@ metadata/*
 # Editor / herramientas
 .idea/
 .vscode/
-.claude/
 .DS_Store
 Thumbs.db
 

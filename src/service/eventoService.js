@@ -47,6 +47,25 @@ const EventoService = {
         return EventoService.findById(id);
     },
 
+    // Guarda el tokenId del boleto NFT (contrato EventoNFT) y su dueño inicial tras
+    // acunarlo con MetaMask.
+    updateNftToken: async (id, nft_token_id, nft_owner = null) => {
+        await pool.query(
+            'UPDATE eventos SET nft_token_id = ?, nft_owner = ? WHERE id = ?',
+            [nft_token_id, nft_owner, id]
+        );
+        return EventoService.findById(id);
+    },
+
+    // Actualiza SOLO el dueño del NFT (tras una transferencia entre wallets).
+    updateNftOwner: async (id, nft_owner) => {
+        await pool.query(
+            'UPDATE eventos SET nft_owner = ? WHERE id = ?',
+            [nft_owner, id]
+        );
+        return EventoService.findById(id);
+    },
+
     update: async (id, data) => {
         await pool.query(
             `UPDATE eventos SET

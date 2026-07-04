@@ -25,11 +25,18 @@ const upload = multer({
 
 const router = express.Router();
 
+// Rutas del boleto NFT (contrato EventoNFT). Van ANTES de las rutas con :id para que
+// "nft" no sea interpretado como un id (mismo cuidado que en el lab de facturas).
+router.get('/nft/config', EventoController.getNftConfig);
+router.get('/nft/verify-complete/:eventoId/:address', EventoController.verifyNftComplete);
+
 router.get('/', EventoController.getAll);
 router.get('/:id', EventoController.getById);
 router.post('/', upload.single('banner'), EventoController.create);
 router.put('/:id', upload.single('banner'), EventoController.update);
-router.put('/:id/tx-hash', EventoController.updateTxHash); // flujo MetaMask: guardar txHash
+router.put('/:id/tx-hash', EventoController.updateTxHash);        // flujo MetaMask: guardar txHash
+router.put('/:id/nft', EventoController.updateNftToken);          // guardar tokenId tras mint NFT
+router.put('/:id/nft/transfer', EventoController.transferNft);   // guardar nuevo dueño tras transferir
 router.delete('/:id', EventoController.remove);
 
 export default router;

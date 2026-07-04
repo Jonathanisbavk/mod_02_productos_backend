@@ -8,7 +8,8 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "compile": "hardhat compile",
-    "deploy": "hardhat run scripts/deploy.cjs --network ganache"
+    "deploy": "hardhat run scripts/deploy.cjs --network ganache",
+    "verify:nft": "hardhat run scripts/verificar-nft.cjs"
   },
   "keywords": [
     "blockchain",
@@ -19,6 +20,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@openzeppelin/contracts": "^4.9.6",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "ethers": "^6.13.4",
