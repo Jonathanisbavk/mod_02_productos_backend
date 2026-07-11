@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import EventoService from '../service/eventoService.js';
+import EventoPdfService from '../service/eventoPdfService.js';
 import { registrarEventoOnChain } from '../blockchain/eventsContract.js';
 import { getNftConfig as readNftConfig, verifyNFTComplete } from '../blockchain/eventoNftContract.js';
 
@@ -55,6 +56,7 @@ function toResponse(row) {
         onchainId:    row.onchain_id,    // id del evento dentro del contrato Events
         nftTokenId:   row.nft_token_id,  // tokenId del boleto NFT acunado (contrato EventoNFT)
         nftOwner:     row.nft_owner,     // wallet dueña actual del NFT (cambia al transferir)
+        ipfsHash:     row.ipfs_hash,     // CID del PDF del boleto publicado en IPFS
         createdAt:    row.created_at
     };
 }
@@ -246,6 +248,41 @@ const EventoController = {
 
         const updated = await EventoService.updateNftOwner(Number(id), owner);
         res.json(toResponse(updated));
+    },
+
+    // --- PDF + IPFS (Lab 14) ---
+
+    // Genera el PDF del boleto del evento (datos + pruebas blockchain + QR de
+    // verificacion), lo guarda en pdfs/ y lo sube al nodo IPFS local. Si IPFS esta
+    // disponible persiste el CID en la BD y devuelve la URL del gateway; si no,
+    // devuelve solo la ruta local (best-effort, como el registro on-chain).
+    // GET /api/eventos/:id/pdf
+    generarPdf: async (req, res) => {
+        const { id } = req.params;
+        try {
+            const evento = await EventoService.findById(Number(id));
+            if (!evento) return res.status(404).json({ error: 'Evento no encontrado' });
+
+            const result = await EventoPdfService.generarBoletoPDF(evento);
+            res.json(result);
+        } catch (error) {
+            console.error('Error al generar el PDF:', error);
+            res.status(500).json({ error: error.message });
+        }
+    },
+
+    // Reporte final en PDF con todos los eventos, cada uno con su QR (URL de IPFS
+    // si el boleto ya fue publicado, o URL de la API en su defecto). Se descarga
+    // directamente como archivo. GET /api/eventos/reporte/pdf
+    generarReporte: async (req, res) => {
+        try {
+            const eventos = await EventoService.findAll();
+            const filePath = await EventoPdfService.generarReportePDF(eventos);
+            res.download(filePath, 'reporte_eventos.pdf');
+        } catch (error) {
+            console.error('Error al generar el reporte PDF:', error);
+            res.status(500).json({ error: error.message });
+        }
     },
 
     // Verificacion completa del NFT (tokenId + metadata + propiedad), de solo lectura.

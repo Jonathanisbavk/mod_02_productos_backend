@@ -11,6 +11,7 @@ app.use(cors({ origin: ['http://localhost:3001', 'http://localhost:3000'] }));
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 app.use('/metadata', express.static('metadata'));
+app.use('/pdfs', express.static('pdfs'));   // PDFs generados (boletos y reporte)
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/eventos', eventoRoutes);

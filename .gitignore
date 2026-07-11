@@ -26,6 +26,8 @@ uploads/*
 !uploads/.gitkeep
 metadata/*
 !metadata/.gitkeep
+pdfs/*
+!pdfs/.gitkeep
 
 # Editor / herramientas
 .idea/

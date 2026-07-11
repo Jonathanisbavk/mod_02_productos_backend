@@ -57,6 +57,16 @@ const EventoService = {
         return EventoService.findById(id);
     },
 
+    // Guarda el CID de IPFS del PDF del boleto (se llena al generar el PDF y
+    // subirlo al nodo IPFS local; queda como prueba de publicacion descentralizada).
+    updateIpfsHash: async (id, ipfs_hash) => {
+        await pool.query(
+            'UPDATE eventos SET ipfs_hash = ? WHERE id = ?',
+            [ipfs_hash, id]
+        );
+        return EventoService.findById(id);
+    },
+
     // Actualiza SOLO el dueño del NFT (tras una transferencia entre wallets).
     updateNftOwner: async (id, nft_owner) => {
         await pool.query(

@@ -30,6 +30,10 @@ const router = express.Router();
 router.get('/nft/config', EventoController.getNftConfig);
 router.get('/nft/verify-complete/:eventoId/:address', EventoController.verifyNftComplete);
 
+// Reporte final en PDF (con QR por evento). Tambien va ANTES de /:id para que
+// "reporte" no se interprete como un id.
+router.get('/reporte/pdf', EventoController.generarReporte);
+
 router.get('/', EventoController.getAll);
 router.get('/:id', EventoController.getById);
 router.post('/', upload.single('banner'), EventoController.create);
@@ -37,6 +41,7 @@ router.put('/:id', upload.single('banner'), EventoController.update);
 router.put('/:id/tx-hash', EventoController.updateTxHash);        // flujo MetaMask: guardar txHash
 router.put('/:id/nft', EventoController.updateNftToken);          // guardar tokenId tras mint NFT
 router.put('/:id/nft/transfer', EventoController.transferNft);   // guardar nuevo dueño tras transferir
+router.get('/:id/pdf', EventoController.generarPdf);              // generar PDF del boleto + subir a IPFS
 router.delete('/:id', EventoController.remove);
 
 export default router;

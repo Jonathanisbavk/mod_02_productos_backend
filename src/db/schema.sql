@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS eventos (
   onchain_id    INT            NULL,   -- id del evento dentro del contrato Events
   nft_token_id  INT            NULL,   -- tokenId del boleto NFT acunado (contrato EventoNFT)
   nft_owner     VARCHAR(42)    NULL,   -- wallet dueña actual del NFT (cambia al transferir)
+  ipfs_hash     VARCHAR(100)   NULL,   -- CID del PDF del boleto publicado en IPFS
   created_at    DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -28,3 +29,6 @@ CREATE TABLE IF NOT EXISTS eventos (
 --   ADD COLUMN onchain_id   INT         NULL,
 --   ADD COLUMN nft_token_id INT         NULL,
 --   ADD COLUMN nft_owner    VARCHAR(42) NULL;
+
+-- Migracion Lab 14 (PDF en IPFS), ejecutar una sola vez sobre BD existentes:
+-- ALTER TABLE eventos ADD COLUMN ipfs_hash VARCHAR(100) NULL;
